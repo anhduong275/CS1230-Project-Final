@@ -1,7 +1,7 @@
 # CS1230-Project-Final
 
 
-## build
+### build
 Run the following commands in the project directory
 ```
 mkdir build
