@@ -14,10 +14,10 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtx/string_cast.hpp"
 
-
 #define BUFFER_OFFSET(offset) (reinterpret_cast<void *>(offset))
 
-class View {
+class View
+{
   // screen size
   GLfloat half_width;
   GLfloat half_height;
@@ -41,10 +41,11 @@ class View {
 
   void initShadersGL();
   void initBuffersGL();
- public:
+
+public:
   View(GLfloat h_width, GLfloat h_height, GLfloat h_depth);
   void renderGL();
   void addSampleTriangle();
 };
 
-#endif  // VIEW_HPP_
+#endif // VIEW_HPP_
