@@ -1,8 +1,15 @@
 #include "mesh.hpp"
 
-void Mesh::insertVec3(glm::vec3 vertex)
+int Mesh::pushVertex(glm::vec3 v, glm::vec2 vt, glm::vec3 vn)
 {
-    this->meshData.push_back(vertex[0]);
-    this->meshData.push_back(vertex[1]);
-    this->meshData.push_back(vertex[2]);
+    vertices.push_back(v.x);
+    vertices.push_back(v.y);
+    vertices.push_back(v.z);
+    vertices.push_back(vt.x);
+    vertices.push_back(vt.y);
+    vertices.push_back(vn.x);
+    vertices.push_back(vn.y);
+    vertices.push_back(vn.z);
+    this->numVertices++;
+    return numVertices;
 }

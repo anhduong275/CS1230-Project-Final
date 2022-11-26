@@ -1,20 +1,22 @@
 #include "spheremesh.hpp"
+#include <tuple>
 
 /**
- * @brief add a triangle, where vertices 1, 2 & 3 follow a counterclockwise order
+ * @brief add a triangle to vertex buffer, where vertices 0, 1 & 2 follow a counterclockwise order
  *
- * @param vertex1
- * @param vertex2
- * @param vertex3
+ * @param v0
+ * @param v1
+ * @param v2
  */
-void SphereMesh::addTriangle(glm::vec3 vertex1, glm::vec3 vertex2, glm::vec3 vertex3)
+
+void SphereMesh::pushTriangle(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2)
 {
-    this->insertVec3(vertex1);
-    this->insertVec3(glm::normalize(vertex1));
-    this->insertVec3(vertex2);
-    this->insertVec3(glm::normalize(vertex2));
-    this->insertVec3(vertex3);
-    this->insertVec3(glm::normalize(vertex3));
+    int i0 = this->pushVertex(v0, glm::vec2(0, 0), glm::normalize(v0));
+    int i1 = this->pushVertex(v1, glm::vec2(0, 0), glm::normalize(v1));
+    int i2 = this->pushVertex(v2, glm::vec2(0, 0), glm::normalize(v2));
+    this->indices.push_back(i0);
+    this->indices.push_back(i1);
+    this->indices.push_back(i2);
 }
 
 void SphereMesh::createIcosahedron()
@@ -36,24 +38,86 @@ void SphereMesh::createIcosahedron()
     glm::vec3 v11 = glm::normalize(glm::vec3((b, -a, 0)));
     glm::vec3 v12 = glm::normalize(glm::vec3((-b, -a, 0)));
 
-    this->addTriangle(v3, v2, v1);
-    this->addTriangle(v2, v3, v4);
-    this->addTriangle(v6, v5, v4);
-    this->addTriangle(v5, v9, v4);
-    this->addTriangle(v8, v7, v1);
-    this->addTriangle(v7, v10, v1);
-    this->addTriangle(v12, v11, v5);
-    this->addTriangle(v11, v12, v7);
-    this->addTriangle(v10, v6, v3);
-    this->addTriangle(v6, v10, v12);
-    this->addTriangle(v9, v8, v2);
-    this->addTriangle(v8, v9, v11);
-    this->addTriangle(v3, v6, v4);
-    this->addTriangle(v9, v2, v4);
-    this->addTriangle(v10, v3, v1);
-    this->addTriangle(v2, v8, v1);
-    this->addTriangle(v12, v10, v7);
-    this->addTriangle(v8, v11, v7);
-    this->addTriangle(v6, v12, v5);
-    this->addTriangle(v11, v9, v5);
+    this->pushTriangle(v3, v2, v1);
+    this->pushTriangle(v2, v3, v4);
+    this->pushTriangle(v6, v5, v4);
+    this->pushTriangle(v5, v9, v4);
+    this->pushTriangle(v8, v7, v1);
+    this->pushTriangle(v7, v10, v1);
+    this->pushTriangle(v12, v11, v5);
+    this->pushTriangle(v11, v12, v7);
+    this->pushTriangle(v10, v6, v3);
+    this->pushTriangle(v6, v10, v12);
+    this->pushTriangle(v9, v8, v2);
+    this->pushTriangle(v8, v9, v11);
+    this->pushTriangle(v3, v6, v4);
+    this->pushTriangle(v9, v2, v4);
+    this->pushTriangle(v10, v3, v1);
+    this->pushTriangle(v2, v8, v1);
+    this->pushTriangle(v12, v10, v7);
+    this->pushTriangle(v8, v11, v7);
+    this->pushTriangle(v6, v12, v5);
+    this->pushTriangle(v11, v9, v5);
+}
+
+void SphereMesh::subdivide() {
+    int numTriangles = this->indices.size() / 3;
+    std::vector<int> tmpIndices;
+    for (int i = 0; i < numTriangles; i++) {    /* loop through triangles */
+        std::vector<int> tmp;
+        for (int j = 0; j < 3; j++) {    /* loop through edges */
+            int l = i + j;
+            int r = i + (j + 1 % 3);
+            if (l > r) {
+                int tmp = l;
+                l = r;
+                r = tmp;
+            }
+            Edge e = Edge{l, r};
+            if (edgeMap.find(e) != edgeMap.end()) {
+                tmp.push_back(edgeMap[e]);
+            } else {
+                glm::vec3 v0(this->vertices[l], 
+                             this->vertices[l + 1], 
+                             this->vertices[l + 2]); 
+                glm::vec3 v1(this->vertices[r], 
+                             this->vertices[r + 1], 
+                             this->vertices[r + 2]); 
+                glm::vec3 d = v1 - v0;
+                glm::vec3 v = v0 + 0.5f * d;
+                glm::vec3 vn = normalize(v);
+                glm::vec2 vt(0, 0);
+                int idx = pushVertex(v, vt, vn);
+                tmp.push_back(idx);
+                edgeMap[e] = idx;
+            }
+        }
+
+        int v0 = i;
+        int v1 = i + 1;
+        int v2 = i + 2;
+        int i0 = tmp[0];
+        int i1 = tmp[1];
+        int i2 = tmp[2];
+
+        tmpIndices.push_back(v0);
+        tmpIndices.push_back(i0);
+        tmpIndices.push_back(i2);
+
+        tmpIndices.push_back(i0);
+        tmpIndices.push_back(v1);
+        tmpIndices.push_back(i1);
+
+        tmpIndices.push_back(i0);
+        tmpIndices.push_back(i1);
+        tmpIndices.push_back(i2);
+
+        tmpIndices.push_back(i2);
+        tmpIndices.push_back(i1);
+        tmpIndices.push_back(v2);
+    }
+
+    this->indices.clear();
+    for (int i : tmpIndices)
+        this->indices.push_back(i);
 }
