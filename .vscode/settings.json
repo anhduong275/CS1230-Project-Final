@@ -70,6 +70,7 @@
     "optional": "cpp",
     "random": "cpp",
     "utility": "cpp",
-    "ranges": "cpp"
+    "ranges": "cpp",
+    "map": "cpp"
   }
 }

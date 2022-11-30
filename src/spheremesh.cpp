@@ -11,9 +11,9 @@
 
 void SphereMesh::pushTriangle(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2)
 {
-    int i0 = this->pushVertex(v0, glm::vec2(0, 0), glm::normalize(v0));
-    int i1 = this->pushVertex(v1, glm::vec2(0, 0), glm::normalize(v1));
-    int i2 = this->pushVertex(v2, glm::vec2(0, 0), glm::normalize(v2));
+    int i0 = this->pushVertex(v0, glm::normalize(v0));
+    int i1 = this->pushVertex(v1, glm::normalize(v1));
+    int i2 = this->pushVertex(v2, glm::normalize(v2));
     this->indices.push_back(i0);
     this->indices.push_back(i1);
     this->indices.push_back(i2);
@@ -21,22 +21,23 @@ void SphereMesh::pushTriangle(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2)
 
 void SphereMesh::createIcosahedron()
 {
+    /*
     float phi = (1.0f + sqrt(5.0f)) * 0.5f; // golden ratio
     float a = 1.0f;
     float b = 1.0f / phi;
 
-    glm::vec3 v1 = glm::normalize(glm::vec3((0, b, -a)));
-    glm::vec3 v2 = glm::normalize(glm::vec3((b, a, 0)));
-    glm::vec3 v3 = glm::normalize(glm::vec3((-b, a, 0)));
-    glm::vec3 v4 = glm::normalize(glm::vec3((0, b, a)));
-    glm::vec3 v5 = glm::normalize(glm::vec3((0, -b, a)));
-    glm::vec3 v6 = glm::normalize(glm::vec3((-a, 0, b)));
-    glm::vec3 v7 = glm::normalize(glm::vec3((0, -b, -a)));
-    glm::vec3 v8 = glm::normalize(glm::vec3((a, 0, -b)));
-    glm::vec3 v9 = glm::normalize(glm::vec3((a, 0, b)));
-    glm::vec3 v10 = glm::normalize(glm::vec3((-a, 0, -b)));
-    glm::vec3 v11 = glm::normalize(glm::vec3((b, -a, 0)));
-    glm::vec3 v12 = glm::normalize(glm::vec3((-b, -a, 0)));
+    glm::vec3 v1 = glm::normalize(glm::vec3(0, b, -a));
+    glm::vec3 v2 = glm::normalize(glm::vec3(b, a, 0));
+    glm::vec3 v3 = glm::normalize(glm::vec3(-b, a, 0));
+    glm::vec3 v4 = glm::normalize(glm::vec3(0, b, a));
+    glm::vec3 v5 = glm::normalize(glm::vec3(0, -b, a));
+    glm::vec3 v6 = glm::normalize(glm::vec3(-a, 0, b));
+    glm::vec3 v7 = glm::normalize(glm::vec3(0, -b, -a));
+    glm::vec3 v8 = glm::normalize(glm::vec3(a, 0, -b));
+    glm::vec3 v9 = glm::normalize(glm::vec3(a, 0, b));
+    glm::vec3 v10 = glm::normalize(glm::vec3(-a, 0, -b));
+    glm::vec3 v11 = glm::normalize(glm::vec3(b, -a, 0));
+    glm::vec3 v12 = glm::normalize(glm::vec3(-b, -a, 0));
 
     this->pushTriangle(v3, v2, v1);
     this->pushTriangle(v2, v3, v4);
@@ -58,36 +59,49 @@ void SphereMesh::createIcosahedron()
     this->pushTriangle(v8, v11, v7);
     this->pushTriangle(v6, v12, v5);
     this->pushTriangle(v11, v9, v5);
+    */
+    std::vector<float> tmpVerts = {-1.f, 1.f, 0.0f,
+                                   -1.f, -1.f, 0.0f,
+                                   1.f, -1.f, 0.0f};
+    std::vector<int> tmpIndices = {0, 1, 2};
+    vertices = tmpVerts;
+    indices = tmpIndices;
 }
 
-void SphereMesh::subdivide() {
+void SphereMesh::subdivide()
+{
     int numTriangles = this->indices.size() / 3;
     std::vector<int> tmpIndices;
-    for (int i = 0; i < numTriangles; i++) {    /* loop through triangles */
+    for (int i = 0; i < numTriangles; i++)
+    { /* loop through triangles */
         std::vector<int> tmp;
-        for (int j = 0; j < 3; j++) {    /* loop through edges */
+        for (int j = 0; j < 3; j++)
+        { /* loop through edges */
             int l = i + j;
             int r = i + (j + 1 % 3);
-            if (l > r) {
+            if (l > r)
+            {
                 int tmp = l;
                 l = r;
                 r = tmp;
             }
-            Edge e = Edge{l, r};
-            if (edgeMap.find(e) != edgeMap.end()) {
+            std::pair<int, int> e = std::make_pair(l, r);
+            if (edgeMap.find(e) != edgeMap.end())
+            {
                 tmp.push_back(edgeMap[e]);
-            } else {
-                glm::vec3 v0(this->vertices[l], 
-                             this->vertices[l + 1], 
-                             this->vertices[l + 2]); 
-                glm::vec3 v1(this->vertices[r], 
-                             this->vertices[r + 1], 
-                             this->vertices[r + 2]); 
+            }
+            else
+            {
+                glm::vec3 v0(this->vertices[l],
+                             this->vertices[l + 1],
+                             this->vertices[l + 2]);
+                glm::vec3 v1(this->vertices[r],
+                             this->vertices[r + 1],
+                             this->vertices[r + 2]);
                 glm::vec3 d = v1 - v0;
                 glm::vec3 v = v0 + 0.5f * d;
                 glm::vec3 vn = normalize(v);
-                glm::vec2 vt(0, 0);
-                int idx = pushVertex(v, vt, vn);
+                int idx = pushVertex(v, vn);
                 tmp.push_back(idx);
                 edgeMap[e] = idx;
             }
@@ -120,4 +134,67 @@ void SphereMesh::subdivide() {
     this->indices.clear();
     for (int i : tmpIndices)
         this->indices.push_back(i);
+}
+
+/**
+ * @brief generate Vbo Vao
+ *
+ */
+void SphereMesh::generateBuffers()
+{
+    Debug::glErrorCheck();
+    glGenBuffers(1, &this->vbo);
+    Debug::glErrorCheck();
+    glGenVertexArrays(1, &this->vao);
+    Debug::glErrorCheck();
+    // generate index & vertex buffers
+    // glGenBuffers(1, &this->ebo);
+}
+
+/**
+ * @brief delete Vbo Vao
+ *
+ */
+void SphereMesh::deleteBuffers()
+{
+    glDeleteBuffers(1, &this->vbo);
+    glDeleteVertexArrays(1, &this->vao);
+    // glDeleteBuffers(1, &this->ebo);
+}
+
+void SphereMesh::initializeBuffers()
+{
+    Debug::glErrorCheck();
+    // bind
+    glBindVertexArray(this->vao);
+    Debug::glErrorCheck();
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ebo);
+    glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+    Debug::glErrorCheck();
+
+    // add data to ebo
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(int), &this->indices[0], GL_STATIC_DRAW);
+
+    // add data vbo buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * this->vertices.size(), this->vertices.data(), GL_STATIC_DRAW);
+    Debug::glErrorCheck();
+
+    // load data into vao
+    // vertices
+    glEnableVertexAttribArray(0);
+    Debug::glErrorCheck();
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void *>(0));
+    Debug::glErrorCheck();
+    // normals
+    glEnableVertexAttribArray(1);
+    Debug::glErrorCheck();
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void *>(3 * sizeof(GL_FLOAT)));
+    Debug::glErrorCheck();
+
+    // unbind
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    Debug::glErrorCheck();
+    glBindVertexArray(0);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    Debug::glErrorCheck();
 }

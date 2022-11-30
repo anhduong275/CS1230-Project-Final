@@ -5,14 +5,15 @@
 GLfloat half_width = 400, half_height = 400, half_depth = 400;
 View *v;
 
-void initView() {
+void initView()
+{
   v = new View(half_width, half_height, half_depth);
-  v->addSampleTriangle();
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
   //! The pointer to the GLFW window
-  GLFWwindow* window;
+  GLFWwindow *window;
 
   //! Setting up the GLFW Error callback
   glfwSetErrorCallback(mynamespace::error_callback);
@@ -31,7 +32,8 @@ int main(int argc, char** argv) {
 
   // ! Create a windowed mode window and its OpenGL context
   window = glfwCreateWindow(half_width * 2, half_height * 2, "OpenGL Template", NULL, NULL);
-  if (!window) {
+  if (!window)
+  {
     glfwTerminate();
     return -1;
   }
@@ -43,7 +45,8 @@ int main(int argc, char** argv) {
   // Turn this on to get Shader based OpenGL
   glewExperimental = GL_TRUE;
   GLenum err = glewInit();
-  if (GLEW_OK != err) {
+  if (GLEW_OK != err)
+  {
     // Problem: glewInit failed, something is seriously wrong.
     std::cerr << "GLEW Init Failed : %s" << std::endl;
   }
@@ -67,7 +70,8 @@ int main(int argc, char** argv) {
   initView();
 
   // Loop until the user closes the window
-  while (glfwWindowShouldClose(window) == 0) {
+  while (glfwWindowShouldClose(window) == 0)
+  {
 
     // Render here
     v->renderGL();

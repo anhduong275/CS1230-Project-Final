@@ -2,7 +2,8 @@
 
 #include <string>
 
-View::View(GLfloat h_width, GLfloat h_height, GLfloat h_depth) {
+View::View(GLfloat h_width, GLfloat h_height, GLfloat h_depth)
+{
   half_width = h_width;
   half_height = h_height;
   half_depth = h_depth;
@@ -10,74 +11,62 @@ View::View(GLfloat h_width, GLfloat h_height, GLfloat h_depth) {
   initShadersGL();
   initBuffersGL();
 
-  ortho_matrix = glm::ortho(-half_width, half_width,
-                            -half_height, half_height,
-                            -half_depth, half_depth);
-  model_view_matrix = ortho_matrix;
+  modelMatrix = glm::mat4(1);
+  glm::vec3 eye(3.0f, 3.0f, 3.0f);
+  glm::vec3 look(0.0f, 0.0f, 0.0f);
+  glm::vec3 up(0.0f, 2.0f, 0.0f);
+  // viewMatrix = glm::lookAt(eye, look, up);
+  // projMatrix = glm::perspective(45.0f, (h_width / h_height), 1.0f, 100.0f);
+  viewMatrix = glm::mat4(1);
+  projMatrix = glm::mat4(1);
+  sphere = SphereMesh();
+  for (float v : sphere.vertices)
+  {
+    std::cout << v << " " << std::endl;
+  }
 }
 
-void View::initShadersGL() {
+void View::initShadersGL()
+{
+  Debug::glErrorCheck();
   std::string vertex_shader_file("shaders/vshader.glsl");
+  Debug::glErrorCheck();
   std::string fragment_shader_file("shaders/fshader.glsl");
+  Debug::glErrorCheck();
 
   std::vector<GLuint> shaderList;
   shaderList.push_back(mynamespace::loadShaderGL(GL_VERTEX_SHADER, vertex_shader_file));
   shaderList.push_back(mynamespace::loadShaderGL(GL_FRAGMENT_SHADER, fragment_shader_file));
+  Debug::glErrorCheck();
 
   shaderProgram = mynamespace::createProgramGL(shaderList);
+  Debug::glErrorCheck();
   glUseProgram(shaderProgram);
+  Debug::glErrorCheck();
 }
 
-void View::initBuffersGL() {
-  v_position = glGetAttribLocation(shaderProgram, "vPosition");
-  v_color = glGetAttribLocation(shaderProgram, "vColor");
-  u_model_view_matrix = glGetUniformLocation(shaderProgram, "uModelViewMatrix");
-
-  num_vao = 1;
-  num_vbo = 1;
-  vao = new GLuint[num_vao];
-  vbo = new GLuint[num_vbo];
-
-  glGenVertexArrays(num_vao, vao);
-  glGenBuffers(num_vbo, vbo);
-
-  glEnable(GL_PROGRAM_POINT_SIZE);
+void View::initBuffersGL()
+{
+  sphere.generateBuffers();
+  sphere.initializeBuffers();
 }
 
-void View::renderGL() {
+void View::renderGL()
+{
+  Debug::glErrorCheck();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glBindVertexArray(vao[0]);
-  glUniformMatrix4fv(u_model_view_matrix, 1, GL_FALSE, glm::value_ptr(model_view_matrix));
-  glDrawArrays(GL_TRIANGLES, 0, points.size());
-}
-
-void View::addSampleTriangle() {
-  points = std::vector<glm::vec4>({
-    glm::vec4(0.0, 200.0, 0.0, 1.0),
-    glm::vec4(-200.0, -200.0, 0.0, 1.0),
-    glm::vec4(200.0, -200.0, 0.0, 1.0)
-  });
-
-  colors = std::vector<glm::vec4>({
-    glm::vec4(0.2, 0.4, 0.6, 1.0),
-    glm::vec4(0.5, 0.1, 0.4, 1.0),
-    glm::vec4(0.7, 0.9, 0.1, 1.0),
-  });
-
-  assert(points.size() == colors.size());
-
-  GLuint buffer_len = points.size() * sizeof(glm::vec4);
-
-  glBindVertexArray(vao[0]);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-
-  glEnableVertexAttribArray(v_position);
-  glVertexAttribPointer(v_position, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-  glEnableVertexAttribArray(v_color);
-  glVertexAttribPointer(v_color, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(buffer_len));
-
-  glBufferData(GL_ARRAY_BUFFER, 2 * buffer_len, NULL, GL_STATIC_DRAW);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, buffer_len, &points[0]);
-  glBufferSubData(GL_ARRAY_BUFFER, buffer_len, buffer_len, &colors[0]);
+  glBindBuffer(GL_ARRAY_BUFFER, sphere.vao);
+  // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere.ebo); // caused error
+  // glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+  Debug::glErrorCheck();
+  // glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+  Debug::glErrorCheck();
+  // glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projMatrix"), 1, GL_FALSE, glm::value_ptr(projMatrix));
+  Debug::glErrorCheck();
+  //  glDrawElements(GL_TRIANGLES, sphere.indices.size(), GL_UNSIGNED_INT, (void *)0);
+  glDrawArrays(GL_TRIANGLES, 0, 3);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  Debug::glErrorCheck();
 }
